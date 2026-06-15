@@ -1,7 +1,6 @@
 from PyQt6.QtWidgets import QWidget
 from PyQt6.QtCore import Qt, QRectF
-from PyQt6.QtGui import QPainter, QFont, QColor, QTextLayout
-
+from PyQt6.QtGui import QFontMetrics, QPainter, QFont, QColor, QTextLayout
 
 class Word:
     def __init__(self, text, rect):
@@ -28,7 +27,16 @@ class SubtitleOverlay(QWidget):
         self.word_padding = 6
 
         self.clicked_callback = None
-
+        self.popup_callback = None
+        self.setAttribute(Qt.WidgetAttribute.WA_TranslucentBackground, True)
+        self.setAttribute(Qt.WidgetAttribute.WA_OpaquePaintEvent, False)
+        self.setAttribute(Qt.WidgetAttribute.WA_NoSystemBackground, True)
+        self.setAttribute(Qt.WidgetAttribute.WA_StyledBackground, False)
+        self.setAutoFillBackground(False)
+        self.setStyleSheet("""
+            background-color: rgba(255, 0, 0, 80);
+        """)
+        
     # -------------------------
     # PUBLIC API
     # -------------------------
@@ -61,58 +69,65 @@ class SubtitleOverlay(QWidget):
     def _layout_words(self, text):
         self.words = []
 
-        words = text.split()
+        font = self.font
+        metrics = QFontMetrics(font)
 
-        x = 40
-        y = 20
+        layout = QTextLayout(text, font)
+        layout.beginLayout()
 
-        fm = self.font
-
-        line_height = 50
+        x, y = 40, 20
         max_width = self.width() - 80
+        line_height = metrics.height() + 10
 
-        for w in words:
+        line = layout.createLine()
+        while line.isValid():
+            line.setLineWidth(max_width)
 
-            metrics = fm
+            line_natural_width = line.naturalTextWidth()
 
-            width = metrics.pointSize() * len(w) * 0.6 + 20
-            height = line_height
-
-            if x + width > max_width:
+            if x + line_natural_width > max_width:
                 x = 40
                 y += line_height
 
-            rect = QRectF(x, y, width, height)
+            start = line.textStart()
+            length = line.textLength()
+            segment = text[start:start+length]
 
-            self.words.append(Word(w, rect))
+            words = segment.split()
 
-            x += width + self.word_padding
+            cursor_x = x
 
+            for w in words:
+                w_width = metrics.horizontalAdvance(w)
+
+                rect = QRectF(cursor_x, y, w_width, line_height)
+
+                self.words.append(Word(w, rect))
+
+                cursor_x += w_width + 6
+
+            x = 40
+            y += line_height
+
+            line = layout.createLine()
+
+        layout.endLayout()
     # -------------------------
     # PAINTING
     # -------------------------
 
     def paintEvent(self, event):
-
-        if not self.visible_enabled:
-            return
+        print("[Overlay] paintEvent triggered")
 
         painter = QPainter(self)
+        # painter.fillRect(self.rect(), QColor(0, 255, 0, 50))  # GREEN FULL BACKGROUND
 
         painter.setFont(self.font)
 
-        painter.setRenderHint(QPainter.RenderHint.Antialiasing)
-
         for word in self.words:
-
             painter.setPen(QColor("white"))
-
-            painter.drawText(
-                word.rect,
-                Qt.AlignmentFlag.AlignCenter,
-                word.text
-            )
-
+            painter.drawRect(word.rect)  # DEBUG BOXES
+            painter.drawText(word.rect, Qt.AlignmentFlag.AlignCenter, word.text)
     # -------------------------
     # INTERACTION
     # -------------------------
@@ -132,6 +147,11 @@ class SubtitleOverlay(QWidget):
 
     def on_word_clicked(self, text, rect):
 
-        print(f"Clicked word: {text}")
+        # data = self.dictionary.analyze(text)
 
-        # placeholder for dictionary / AI later
+        global_pos = self.mapToGlobal(
+            rect.topLeft().toPoint()
+        )
+
+        # if self.popup_callback:
+        #     self.popup_callback(data, global_pos)

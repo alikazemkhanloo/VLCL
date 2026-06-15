@@ -2,6 +2,7 @@ import sys
 import vlc
 
 from PyQt6.QtWidgets import (
+    QSizePolicy,
     QWidget,
     QVBoxLayout,
     QFileDialog
@@ -14,7 +15,7 @@ from PyQt6.QtCore import (
 
 from subtitle_engine import SubtitleEngine
 from subtitle_overlay import SubtitleOverlay
-
+from dictionary_popup import DictionaryPopup
 
 class PlayerWidget(QWidget):
 
@@ -27,13 +28,21 @@ class PlayerWidget(QWidget):
         self.mediaplayer = self.instance.media_player_new()
 
         self.video_frame = QWidget(self)
-
         self.overlay = SubtitleOverlay(self)
+        self.overlay.setAttribute(Qt.WidgetAttribute.WA_TransparentForMouseEvents)
+        self.overlay.raise_()
+        self.overlay.show()
+        self.overlay.popup_callback = self.show_dictionary
 
         layout = QVBoxLayout()
         layout.setContentsMargins(0, 0, 0, 0)
 
         layout.addWidget(self.video_frame)
+        self.video_frame.setMinimumSize(1, 1)
+        self.video_frame.setSizePolicy(
+            QSizePolicy.Policy.Expanding,
+            QSizePolicy.Policy.Expanding
+        )
 
         self.setLayout(layout)
 
@@ -45,16 +54,30 @@ class PlayerWidget(QWidget):
         self.timer.timeout.connect(self.update_subtitles)
         self.timer.start(100)
 
+        self.popup = DictionaryPopup()
+        self.setFocusPolicy(Qt.FocusPolicy.StrongFocus)
+        self.setFocus()
+
+    def show_dictionary(self, data, pos):
+        self.popup.show_word(data, pos)
+
+
     def resizeEvent(self, event):
         super().resizeEvent(event)
 
-        self.overlay.setGeometry(
-            100,
-            self.height() - 180,
-            self.width() - 200,
-            120
-        )
 
+
+        self.video_frame.setGeometry(self.rect())
+
+        self.overlay.setGeometry(self.video_frame.geometry())
+        # self.overlay.setGeometry(self.video_frame.rect())
+        self.overlay.raise_()
+
+        print("[Overlay] visible:", self.overlay.isVisible())
+        print("[Overlay] geometry:", self.overlay.geometry())
+
+
+        
     def open_video(self):
 
         path, _ = QFileDialog.getOpenFileName(
@@ -67,13 +90,14 @@ class PlayerWidget(QWidget):
 
         media = self.instance.media_new(path)
 
+        media.add_option("no-sub-autodetect-file")
+        media.add_option("no-spu")
+
         self.mediaplayer.set_media(media)
-
+        self.mediaplayer.video_set_spu(-1)
         if sys.platform == "darwin":
-            self.mediaplayer.set_nsobject(
-                int(self.video_frame.winId())
-            )
-
+            self.video_frame.winId()  # force native handle creation
+            self.mediaplayer.set_nsobject(int(self.video_frame.winId()))
         self.mediaplayer.play()
 
     def open_subtitles(self):
