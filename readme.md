@@ -57,29 +57,48 @@ Dictionary API (REST)
 
 #### 🧱 Architecture
 
-PlayerWidget
- ├── VLC MediaPlayer
- ├── SubtitleEngine (SRT parsing + timing)
- ├── SubtitleOverlay (word rendering + interaction)
- ├── DictionaryPopup (lookup UI)
- └── DictionaryWorker (async API fetch)
+```mermaid
+graph TD
+A[PlayerWidget]
+
+A --> B[VLC MediaPlayer]
+A --> C[SubtitleEngine<br/>SRT parsing + timing]
+A --> D[SubtitleOverlay<br/>word rendering + interaction]
+A --> E[DictionaryPopup<br/>lookup UI]
+A --> F[DictionaryWorker<br/>async API fetch]
+
+```
+
 
 ### Flow:
+```mermaid
+flowchart LR
 
-video time → subtitle engine → subtitle line
-            → overlay renders words
-            → click word → async dictionary → popup
+A[Video Playback Time] --> B[SubtitleEngine]
+B --> C[Subtitle Line]
+
+C --> D[SubtitleOverlay renders words]
+
+D --> E[User clicks word]
+
+E --> F[DictionaryWorker async request]
+
+F --> G[Dictionary API response]
+
+G --> H[DictionaryPopup display]
+```
+
 
 ### 🚧 Known Issues
 
-Stability
+#### Stability
 Occasional VLC decoder timestamp warnings (harmless)
 Dictionary API can return None → must be handled safely
-UI / Rendering
+#### UI / Rendering
 Overlay positioning still being tuned
 Word bounding logic is approximate (not glyph-accurate yet)
 No responsive layout scaling for different video sizes
-Interaction
+#### Interaction
 No keyboard navigation between words/subtitles
 No pause-on-click behavior yet
 
