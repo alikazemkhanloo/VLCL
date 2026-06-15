@@ -65,17 +65,22 @@ class PlayerWidget(QWidget):
     def resizeEvent(self, event):
         super().resizeEvent(event)
 
-
-
         self.video_frame.setGeometry(self.rect())
 
-        self.overlay.setGeometry(self.video_frame.geometry())
-        # self.overlay.setGeometry(self.video_frame.rect())
+        w = self.video_frame.width()
+        h = self.video_frame.height()
+
+        subtitle_height = int(h * 0.22)   # 22% of video height
+        margin_x = int(w * 0.08)          # left/right padding
+
+        self.overlay.setGeometry(
+            margin_x,
+            h - subtitle_height - 30,    # bottom offset
+            w - 2 * margin_x,
+            subtitle_height
+        )
+
         self.overlay.raise_()
-
-        print("[Overlay] visible:", self.overlay.isVisible())
-        print("[Overlay] geometry:", self.overlay.geometry())
-
 
         
     def open_video(self):
