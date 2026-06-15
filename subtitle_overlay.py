@@ -2,6 +2,8 @@ from PyQt6.QtWidgets import QWidget
 from PyQt6.QtCore import Qt, QRectF
 from PyQt6.QtGui import QFontMetrics, QPainter, QFont, QColor, QTextLayout
 
+from dictionary_service import DictionaryWorker, DictionaryService
+
 class Word:
     def __init__(self, text, rect):
         self.text = text
@@ -17,7 +19,7 @@ class SubtitleOverlay(QWidget):
         self.text = ""
 
         self.visible_enabled = True
-
+        self.dictionary_service = DictionaryService()
         self.setAttribute(
             Qt.WidgetAttribute.WA_TransparentForMouseEvents,
             False
@@ -149,12 +151,7 @@ class SubtitleOverlay(QWidget):
                 break
 
     def on_word_clicked(self, text, rect):
-
-        # data = self.dictionary.analyze(text)
-
-        global_pos = self.mapToGlobal(
-            rect.topLeft().toPoint()
-        )
-
-        # if self.popup_callback:
-        #     self.popup_callback(data, global_pos)
+        global_pos = self.mapToGlobal(rect.topLeft().toPoint())
+        self.worker = DictionaryWorker(self.dictionary_service, text)
+        self.worker.result.connect(lambda data: self.popup_callback(data, global_pos) if self.popup_callback else None)
+        self.worker.start()

@@ -39,12 +39,22 @@ class DictionaryPopup(QWidget):
         self.hide()
 
     def show_word(self, data, global_pos: QPoint):
+        print('data',data)
+        status = data.get('status', 'error')
+        code = data.get('error_code', None)
+        result = data['data']
+        print('result', result)
 
-        text = f"""
-<b>{data['text']}</b><br>
-<lemma: {data['lemma']}> <br>
-{data['meaning']}
-"""
+        if status == 'error':
+            text = f"""
+                <b>Error:</b><br>
+                <i>{code}</i><br>
+            """
+        else:
+            text = f"""
+                <b>{result['word']}</b><br>
+                {result['definition']}
+            """
 
         self.label.setText(text)
 
