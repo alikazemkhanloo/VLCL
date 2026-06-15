@@ -33,9 +33,9 @@ class SubtitleOverlay(QWidget):
         self.setAttribute(Qt.WidgetAttribute.WA_NoSystemBackground, True)
         self.setAttribute(Qt.WidgetAttribute.WA_StyledBackground, False)
         self.setAutoFillBackground(False)
-        self.setStyleSheet("""
-            background-color: rgba(255, 0, 0, 80);
-        """)
+        # self.setStyleSheet("""
+        #     background-color: rgba(255, 0, 0, 80);
+        # """)
         
     # -------------------------
     # PUBLIC API
@@ -117,17 +117,20 @@ class SubtitleOverlay(QWidget):
     # -------------------------
 
     def paintEvent(self, event):
-        print("[Overlay] paintEvent triggered")
-
         painter = QPainter(self)
-        # painter.fillRect(self.rect(), QColor(0, 255, 0, 50))  # GREEN FULL BACKGROUND
+
+        painter.setCompositionMode(QPainter.CompositionMode.CompositionMode_Source)
+
+        painter.fillRect(self.rect(), QColor(0, 0, 0, 0))  # HARD CLEAR
+
+        painter.setCompositionMode(QPainter.CompositionMode.CompositionMode_SourceOver)
 
         painter.setFont(self.font)
 
         for word in self.words:
             painter.setPen(QColor("white"))
-            painter.drawRect(word.rect)  # DEBUG BOXES
-            painter.drawText(word.rect, Qt.AlignmentFlag.AlignCenter, word.text)
+            painter.drawRect(word.rect)
+            painter.drawText(word.rect, Qt.AlignmentFlag.AlignCenter, word.text) 
     # -------------------------
     # INTERACTION
     # -------------------------

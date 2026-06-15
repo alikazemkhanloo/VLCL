@@ -150,6 +150,14 @@ class PlayerWidget(QWidget):
             self.current_sub.start
         )
 
+    def rewind(self, ms=5000):
+        t = self.mediaplayer.get_time()
+        self.mediaplayer.set_time(max(0, t - ms))
+
+    def fast_forward(self, ms=5000):
+        t = self.mediaplayer.get_time()
+        self.mediaplayer.set_time(t + ms)
+        
     def keyPressEvent(self, event):
 
         if event.key() == Qt.Key.Key_S:
@@ -157,3 +165,15 @@ class PlayerWidget(QWidget):
 
         elif event.key() == Qt.Key.Key_R:
             self.replay_current_subtitle()
+
+        elif event.key() == Qt.Key.Key_Space:
+            if self.mediaplayer.is_playing():
+                self.mediaplayer.pause()
+            else:
+                self.mediaplayer.play()
+
+        elif event.key() == Qt.Key.Key_Left:
+            self.rewind(5000)
+
+        elif event.key() == Qt.Key.Key_Right:
+            self.fast_forward(5000)

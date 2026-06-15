@@ -22,7 +22,7 @@ class DictionaryPopup(QWidget):
 
         self.label.setStyleSheet("""
             QLabel {
-                background-color: rgba(30, 30, 30, 230);
+                background-color: rgba(30, 30, 30, 50);
                 color: white;
                 padding: 10px;
                 border-radius: 8px;
