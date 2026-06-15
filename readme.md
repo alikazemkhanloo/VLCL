@@ -92,15 +92,15 @@ G --> H[DictionaryPopup display]
 ### 🚧 Known Issues
 
 #### Stability
-Occasional VLC decoder timestamp warnings (harmless)
-Dictionary API can return None → must be handled safely
+* Occasional VLC decoder timestamp warnings (harmless)
+* Dictionary API can return None → must be handled safely (partially done, needs loading and correct error messages)
 #### UI / Rendering
-Overlay positioning still being tuned
-Word bounding logic is approximate (not glyph-accurate yet)
-No responsive layout scaling for different video sizes
+* Overlay positioning still being tuned
+* Word bounding logic is approximate (not glyph-accurate yet)
+* No responsive layout scaling for different video sizes
 #### Interaction
-No keyboard navigation between words/subtitles
-No pause-on-click behavior yet
+* No keyboard navigation between words/subtitles
+* No pause-on-click behavior yet
 
 ### 🛣️ Roadmap
 
